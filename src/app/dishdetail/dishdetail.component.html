@@ -19,6 +19,7 @@
         <p>{{ dish.description }}</p>
       </mat-card-content>
       <mat-card-actions>
+        <button mat-button (click)="goBack()">BACK</button>
         <button mat-button>LIKE</button>
         <button mat-button>SHARE</button>
       </mat-card-actions>
@@ -26,8 +27,8 @@
   </div>
 
   <div fxFlex="40">
-    <h3>Comments</h3>
     <mat-list *ngIf="dish">
+      <h3>Comments</h3>
       <mat-list-item *ngFor="let comment of dish.comments">
         <p matLine>{{ comment.comment }}</p>
         <p matLine>{{ comment.rating }} Stars</p>
