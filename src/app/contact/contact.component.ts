@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Feedback, ContactType } from "../shared/feedback";
-import { flyInOut } from "../animations/app.animation";
+import { flyInOut, expand } from "../animations/app.animation";
+import { FeedbackService } from "../services/feedback.service";
 
 @Component({
   selector: "app-contact",
@@ -12,13 +13,17 @@ import { flyInOut } from "../animations/app.animation";
     "[@flyInOut]": "true",
     style: "display: block;",
   },
-  animations: [flyInOut()],
+  animations: [flyInOut(), expand()],
 })
 export class ContactComponent implements OnInit {
   @ViewChild("fform") feedbackFormDirective;
 
   feedbackForm: FormGroup;
   feedback: Feedback;
+  errMess: string;
+
+  submitting = false;
+  showFeedback = false;
   contactType = ContactType;
 
   formErrors = {
@@ -49,7 +54,10 @@ export class ContactComponent implements OnInit {
     },
   };
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private feedbackService: FeedbackService
+  ) {
     this.createForm();
   }
 
@@ -110,17 +118,35 @@ export class ContactComponent implements OnInit {
   }
 
   onSubmit() {
+    console.log("*** submitting feedback form ***");
     this.feedback = this.feedbackForm.value;
-    console.log(this.feedback);
-    this.feedbackForm.reset({
-      firstname: "",
-      lastname: "",
-      telnum: "",
-      email: "",
-      agree: false,
-      contacttype: "None",
-      message: "",
-    });
-    this.feedbackFormDirective.resetForm();
+    this.submitting = true;
+    this.feedbackService.submitFeedback(this.feedback).subscribe(
+      (feedback) => {
+        this.feedback = feedback;
+        this.showFeedback = true;
+        setTimeout(
+          function () {
+            console.log("set timeout executed");
+            this.showFeedback = false;
+          }.bind(this),
+          5000
+        );
+        this.feedbackForm.reset({
+          firstname: "",
+          lastname: "",
+          telnum: "",
+          email: "",
+          agree: false,
+          contacttype: "None",
+          message: "",
+        });
+        this.feedbackFormDirective.resetForm();
+      },
+      (errmess) => {
+        this.errMess = <any>errmess;
+      },
+      () => (this.submitting = false)
+    );
   }
 }
